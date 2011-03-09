@@ -6,17 +6,21 @@ if (typeof exports !== 'undefined') {
 }
 
 (function(ns) {
-  // create the console window
-  var instrumentsWindow = window.open(
-    '',
-    'jsInstrument',
-    'width=600,height=600');
-  instrumentsWindow.$i = $i;
-
   var $i = ns;
+  var statConsole, timer;
+
+  // create the console window
+  $i.console = function() {
+    statConsole = window.open(
+      '',
+      'jsInstrument',
+      'width=600,height=600');
+    statConsole.$i = $i;
+    clearInterval(timer);
+    timer = setInterval(updateStats, 100);
+  };
 
   // storage for stats
-
   var cache;
   $i.clear = function() {
     return cache = {starts: {}, metrics: {}};
@@ -60,7 +64,7 @@ if (typeof exports !== 'undefined') {
 
   // open the console window
   var prepareConsole = function() {
-    var doc = instrumentsWindow.document;
+    var doc = statConsole.document;
     if (doc.body.innerHTML === '') {
       var template =
       '<html>\
@@ -76,6 +80,7 @@ if (typeof exports !== 'undefined') {
           tr {border-bottom: 1px solid #ccc;}\
           .metadata {font-size:11px; color: #aaa; margin:10px 0px 30px 6px}\
           #snapshot {position: absolute; top: 16px; right: 20px;}\
+          .even td, .even tr {background: #efefef}\
         </style>\
         <body>\
           <h2>JS Instrument ♫</h2>\
@@ -86,7 +91,7 @@ if (typeof exports !== 'undefined') {
       doc.write(template);
       addTable();
     }
-    instrumentsWindow.$i = $i;
+    statConsole.$i = $i;
     return doc;
   };
 
@@ -95,7 +100,7 @@ if (typeof exports !== 'undefined') {
       '<table width="100%" cellspacing="0" border="0">\
        </table>\
        <div class="metadata">started at: ' + new Date() + '</div>';
-    var doc = instrumentsWindow.document;
+    var doc = statConsole.document;
     var container = doc.getElementById('container');
     var html = container.innerHTML;
     container.innerHTML = tableTemplate + html;
@@ -115,7 +120,7 @@ if (typeof exports !== 'undefined') {
   };
 
   // generate a row of metric data
-  var generateDataRow = function(metric, data) {
+  var generateDataRow = function(metric, data, alt) {
     var sum = 0, min, max;
     for (var i=0; i < data.length; i++) {
       var run = data[i];
@@ -124,11 +129,12 @@ if (typeof exports !== 'undefined') {
       if (!max || elapsed > max) max = elapsed;
       sum += elapsed;
     }
+    var altClass = alt ? 'odd' : 'even';
     var avg = formatTime(sum / data.length);
     min = formatTime(min);
     max = formatTime(max);
     var row =
-      '<tr>\
+      '<tr class="' + altClass + '">\
          <td>' + metric + '</td>\
          <td>' + data.length + '</td>\
          <td>' + avg + '</td>\
@@ -140,18 +146,20 @@ if (typeof exports !== 'undefined') {
 
   // update the stats console window
   var updateStats = function() {
+    if (!statConsole) return;
     var doc = prepareConsole();
     var dataTable = doc.getElementsByTagName('table')[0];
     dataTable.innerHTML = '';
     dataTable.innerHTML = '<tr><th>label</th><th>runs</th><th>avg</th><th>max</th><th>min</th></tr>';
+    var alt = false;
     for (metric in cache.metrics) {
       if (cache.metrics.hasOwnProperty(metric)) {
         var data = cache.metrics[metric];
-        var dataRow = generateDataRow(metric, data);
+        alt = !alt;
+        var dataRow = generateDataRow(metric, data, alt);
         dataTable.innerHTML += dataRow;
       }
     }
   };
-  setInterval(updateStats, 100);
 })($i);
 
