@@ -54,6 +54,7 @@ if (typeof exports !== 'undefined') {
   };
 
   $i.snapshot = function() {
+    $i.clear();
     addTable();
   };
 
@@ -78,14 +79,14 @@ if (typeof exports !== 'undefined') {
         </style>\
         <body>\
           <h2>JS Instrument ♫</h2>\
-          <input type="button" value="snapshot" id="snapshot" />\
+          <input type="button" value="snapshot" id="snapshot" onclick="$i.snapshot()"/>\
           <div id="container"></div>\
         </body>\
       </html>';
       doc.write(template);
-      doc.getElementById('snapshot').onclick = $i.snapshot;
       addTable();
     }
+    instrumentsWindow.$i = $i;
     return doc;
   };
 
