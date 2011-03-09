@@ -4,11 +4,34 @@
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
   <title>JS Instrument</title>
 </head>
-<body>
+<body onload="run()">
   
   <script type="text/javascript" charset="utf-8" src="instrument.js"></script>
   <script type="text/javascript" charset="utf-8">
-    $i.setEnabled(true);
+    function run() {
+      $i.setEnabled(true);
+
+      for (var j = 0; j < 100; j++) {
+        $i.start('fullOfStars');
+        // some code I'm curious about
+        var str = '';
+        for (var i = 0; i < 100000; i++) {
+          str += '*'; 
+        }
+        $i.stop('fullOfStars');
+      }
+
+      for (var j = 0; j < 100; j++) {
+        $i.start('helloWorld');
+        // some code I'm curious about
+        var str = '';
+        for (var i = 0; i < 10; i++) {
+          document.body.innerHTML += '<div>helloWorld</div>';
+        }
+        $i.stop('helloWorld');
+        document.body.innerHTML = '';
+      }
+    }
   </script>
 </body>
 </html>

@@ -9,38 +9,42 @@ if (typeof exports !== 'undefined') {
   // create the console window
   var instrumentsWindow = window.open(
     '',
-    'instruments',
+    '',
     'width=600,height=600');
   instrumentsWindow.$i = $i;
 
   var $i = ns;
 
   // storage for stats
-  $i.__cache = {starts: {}, metrics: {}};
+  var cache = cache = {starts: {}, metrics: {}};
 
   // enable or disable statistics
   $i.setEnabled = function(enabled) {
     $i.__enabled = enabled;
   };
 
+  $i.isEnabled = function() {
+    return $i.__enabled;
+  };
+
   // start a labeled timer
   $i.start = function(label){
     if (!$i.__enabled) return;
-    $i.__cache.starts[label] = new Date().getTime();
+    cache.starts[label] = new Date().getTime();
   };
 
   // stop a labeled timer
   $i.stop = function(label){
     if (!$i.__enabled) return;
-    var start = $i.__cache.starts[label];
+    var start = cache.starts[label];
     if (start) {
       var stop = new Date().getTime();
-      $i.__cache.metrics[label] = $i.__cache.metrics[label] || [];
-      $i.__cache.metrics[label].push({
+      cache.metrics[label] = cache.metrics[label] || [];
+      cache.metrics[label].push({
         start: start,
         stop: stop
       });
-      delete $i.__cache.starts[label];
+      delete cache.starts[label];
     }
   };
 
@@ -120,10 +124,10 @@ if (typeof exports !== 'undefined') {
     var doc = prepareConsole();
     var dataTable = doc.getElementById('data');
     dataTable.innerHTML = '';
-    for (metric in $i.__cache.metrics) {
-      if ($i.__cache.metrics.hasOwnProperty(metric)) {
+    for (metric in cache.metrics) {
+      if (cache.metrics.hasOwnProperty(metric)) {
         var metrics = doc.getElementById('metrics');
-        var data = $i.__cache.metrics[metric];
+        var data = cache.metrics[metric];
         var dataRow = generateDataRow(metric, data);
         dataTable.innerHTML += dataRow;
       }
