@@ -9,39 +9,52 @@ if (typeof exports !== 'undefined') {
   // create the console window
   var instrumentsWindow = window.open(
     '',
-    'instruments',
+    'jsInstrument',
     'width=600,height=600');
   instrumentsWindow.$i = $i;
 
   var $i = ns;
 
   // storage for stats
-  $i.__cache = {starts: {}, metrics: {}};
+
+  var cache;
+  $i.clear = function() {
+    return cache = {starts: {}, metrics: {}};
+  };
+  $i.clear();
 
   // enable or disable statistics
   $i.setEnabled = function(enabled) {
     $i.__enabled = enabled;
   };
 
+  $i.isEnabled = function() {
+    return $i.__enabled;
+  };
+
   // start a labeled timer
   $i.start = function(label){
     if (!$i.__enabled) return;
-    $i.__cache.starts[label] = new Date().getTime();
+    cache.starts[label] = new Date().getTime();
   };
 
   // stop a labeled timer
   $i.stop = function(label){
     if (!$i.__enabled) return;
-    var start = $i.__cache.starts[label];
+    var start = cache.starts[label];
     if (start) {
       var stop = new Date().getTime();
-      $i.__cache.metrics[label] = $i.__cache.metrics[label] || [];
-      $i.__cache.metrics[label].push({
+      cache.metrics[label] = cache.metrics[label] || [];
+      cache.metrics[label].push({
         start: start,
         stop: stop
       });
-      delete $i.__cache.starts[label];
+      delete cache.starts[label];
     }
+  };
+
+  $i.snapshot = function() {
+    addTable();
   };
 
   // open the console window
@@ -54,37 +67,46 @@ if (typeof exports !== 'undefined') {
         <style>\
           * {font-family: helvetia, sans-serif}\
           body {background: #eee}\
+          h2 {color: #aaa}\
+          table {-webkit-box-shadow: 3px 3px 3px #ccc;}\
           th, td {padding: 5px}\
           th {background: #990362; color:#fff; font-weight:normal; font-size: 14px; text-align:left}\
           td {background: #fff; font-size:12px}\
           tr {border-bottom: 1px solid #ccc;}\
+          .metadata {font-size:11px; color: #aaa; margin:10px 0px 30px 6px}\
+          #snapshot {position: absolute; top: 16px; right: 20px;}\
         </style>\
         <body>\
           <h2>JS Instrument ♫</h2>\
-          <table id="metrics" width="100%" cellspacing="0" border="0">\
-            <tr>\
-              <th>label</th>\
-              <th>runs</th>\
-              <th>avg</th>\
-              <th>max</th>\
-              <th>min</th>\
-            </tr>\
-            <tbody id="data"></tbody>\
-          </table>\
+          <input type="button" value="snapshot" id="snapshot" />\
+          <div id="container"></div>\
         </body>\
       </html>';
       doc.write(template);
+      doc.getElementById('snapshot').onclick = $i.snapshot;
+      addTable();
     }
     return doc;
+  };
+
+  var addTable = function() {
+    var tableTemplate =
+      '<table width="100%" cellspacing="0" border="0">\
+       </table>\
+       <div class="metadata">started at: ' + new Date() + '</div>';
+    var doc = instrumentsWindow.document;
+    var container = doc.getElementById('container');
+    var html = container.innerHTML;
+    container.innerHTML = tableTemplate + html;
   };
 
   // generate a friendly time format
   var formatTime = function(ms) {
     if (ms < 1000) {
-      return ms + 'ms';
+      return (ms + '').substr(0, 6) + 'ms';
     }
     if (ms > 1000 && ms < 60000) {
-      return (ms / 1000) + 's';
+      return ((ms / 1000) + '').substr(0, 6) + 's';
     }
     if (ms > 60000) {
       return (ms / 60000) + 'm';
@@ -118,12 +140,12 @@ if (typeof exports !== 'undefined') {
   // update the stats console window
   var updateStats = function() {
     var doc = prepareConsole();
-    var dataTable = doc.getElementById('data');
+    var dataTable = doc.getElementsByTagName('table')[0];
     dataTable.innerHTML = '';
-    for (metric in $i.__cache.metrics) {
-      if ($i.__cache.metrics.hasOwnProperty(metric)) {
-        var metrics = doc.getElementById('metrics');
-        var data = $i.__cache.metrics[metric];
+    dataTable.innerHTML = '<tr><th>label</th><th>runs</th><th>avg</th><th>max</th><th>min</th></tr>';
+    for (metric in cache.metrics) {
+      if (cache.metrics.hasOwnProperty(metric)) {
+        var data = cache.metrics[metric];
         var dataRow = generateDataRow(metric, data);
         dataTable.innerHTML += dataRow;
       }
