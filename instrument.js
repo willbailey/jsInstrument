@@ -10,7 +10,7 @@ if (typeof exports !== 'undefined') {
   var statConsole, timer;
 
   // create the console window
-  $i.console = function() {
+  $i.loadConsole = function() {
     statConsole = window.open(
       '',
       'jsInstrument',
