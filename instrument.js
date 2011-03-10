@@ -129,6 +129,7 @@ if (typeof exports !== 'undefined') {
       if (!max || elapsed > max) max = elapsed;
       sum += elapsed;
     }
+    var total = formatTime(sum);
     var altClass = alt ? 'odd' : 'even';
     var avg = formatTime(sum / data.length);
     min = formatTime(min);
@@ -138,6 +139,7 @@ if (typeof exports !== 'undefined') {
          <td>' + metric + '</td>\
          <td>' + data.length + '</td>\
          <td>' + avg + '</td>\
+         <td>' + total + '</td>\
          <td>' + max + '</td>\
          <td>' + min + '</td>\
       </tr>';
@@ -150,7 +152,7 @@ if (typeof exports !== 'undefined') {
     var doc = prepareConsole();
     var dataTable = doc.getElementsByTagName('table')[0];
     dataTable.innerHTML = '';
-    dataTable.innerHTML = '<tr><th>label</th><th>runs</th><th>avg</th><th>max</th><th>min</th></tr>';
+    dataTable.innerHTML = '<tr><th>label</th><th>runs</th><th>avg</th><th>total</th><th>max</th><th>min</th></tr>';
     var alt = false;
     for (metric in cache.metrics) {
       if (cache.metrics.hasOwnProperty(metric)) {
