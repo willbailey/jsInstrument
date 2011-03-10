@@ -154,7 +154,18 @@ if (typeof exports !== 'undefined') {
     dataTable.innerHTML = '';
     dataTable.innerHTML = '<tr><th>label</th><th>runs</th><th>avg</th><th>total</th><th>max</th><th>min</th></tr>';
     var alt = false;
+
+    var metrics = [];
     for (metric in cache.metrics) {
+      if (cache.metrics.hasOwnProperty(metric)) metrics.push(metric);
+    }
+    metrics = metrics.sort(function(a, b) {
+      a = a || ''; b = b || '';
+      return a.toLowerCase() < b.toLowerCase() ? -1 : 1;
+    });
+
+    for (var i = 0; i < metrics.length; i++) {
+      var metric = metrics[i];
       if (cache.metrics.hasOwnProperty(metric)) {
         var data = cache.metrics[metric];
         alt = !alt;
